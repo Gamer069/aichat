@@ -37,26 +37,31 @@ pub struct Message {
 
 #[component]
 pub fn App() -> impl IntoView {
-    let (user_messages, set_user_messages) = signal(vec![
+    let (messages, set_messages) = signal(vec![
         Message { role: Role::User, content: "wqewerew".to_string() }
     ]);
 
     view! {
         <div class="messages">
             <For
-                each=move || user_messages.get()
-                key=|msg| format!("{}{}", msg.role, msg.content)
-                children=move |msg| {
-                    view! {
-                        <div class="userMessages message">
-                            { msg.content }
-                        </div>
-                    }
+            each=move || messages.get()
+            key=|msg| format!("{}{}", msg.role, msg.content)
+            children=move |msg| {
+                console_log(format!("{:?}", msg.role).as_str());
+
+                let role_class = match msg.role {
+                    Role::User => "userMessages",
+                    Role::Ai => "aiMessages",
+                };
+                let class = format!("{} {}", role_class, "message");
+
+                view! {
+                    <div class={ class }>
+                    { msg.content }
+                    </div>
                 }
-            />
-            <div class="aiMessages message">
-                "Lorem ipsum dolor sit amet consectetur edipiscing elit!"
-            </div>
+            }
+        />
         </div>
 
         <main class="container">
@@ -74,7 +79,7 @@ pub fn App() -> impl IntoView {
                             role: Role::User, content: inp.value().trim().to_string() 
                         };
 
-                        set_user_messages.update(|messages| {
+                        set_messages.update(|messages| {
                             messages.push(msg.clone());
                         });
 
@@ -82,7 +87,7 @@ pub fn App() -> impl IntoView {
                             let args = serde_wasm_bindgen::to_value(&serde_json::json!({ "message": msg })).unwrap();
                             let response = invoke("process_message", args).await;
                             let response: Message = serde_wasm_bindgen::from_value(response).unwrap();
-                            set_user_messages.update(|messages| {
+                            set_messages.update(|messages| {
                                 messages.push(response);
                             });
                             console_log("Message added!");
