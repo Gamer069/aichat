@@ -2,6 +2,7 @@
 use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize)]
 pub enum Role {
@@ -26,11 +27,12 @@ impl Display for Role {
 pub struct Message {
     pub role: Role,
     pub content: String,
+    pub uuid: Uuid,
 }
 
 #[tauri::command]
 fn process_message(message: Message) -> Message {
-    Message { role: Role::Ai, content: "something".to_owned() }
+    Message { role: Role::Ai, content: "something".to_owned(), uuid: Uuid::now_v7()  }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

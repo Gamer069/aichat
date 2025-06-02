@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use leptos::{ev::SubmitEvent, leptos_dom::logging::console_log, prelude::*, task::spawn_local};
 use serde::{Deserialize, Serialize};
+use uuid::{Timestamp, Uuid};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -33,19 +34,18 @@ impl Display for Role {
 pub struct Message {
     pub role: Role,
     pub content: String,
+    pub uuid: Uuid,
 }
 
 #[component]
 pub fn App() -> impl IntoView {
-    let (messages, set_messages) = signal(vec![
-        Message { role: Role::User, content: "wqewerew".to_string() }
-    ]);
+    let (messages, set_messages) = signal(vec![]);
 
     view! {
         <div class="messages">
             <For
             each=move || messages.get()
-            key=|msg| format!("{}{}", msg.role, msg.content)
+            key=|msg: &Message| msg.uuid
             children=move |msg| {
                 console_log(format!("{:?}", msg.role).as_str());
 
@@ -76,7 +76,9 @@ pub fn App() -> impl IntoView {
                 if let Some(inp) = inp {
                     if !inp.value().trim().is_empty() {
                         let msg = Message {
-                            role: Role::User, content: inp.value().trim().to_string() 
+                            role: Role::User,
+                            content: inp.value().trim().to_string(),
+                            uuid: Uuid::now_v7(),
                         };
 
                         set_messages.update(|messages| {
